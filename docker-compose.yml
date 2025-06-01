@@ -1,0 +1,25 @@
+services:
+    front_data_relation:
+        build: ./front
+        container_name: front_data_relation
+        tty: true
+        volumes:
+            - ./front/src/data_relation:/app
+            - ./:/app/data
+        env_file:
+           - .env
+        ports:
+            - "5173:3000"
+            - "5174:5555"
+        depends_on:
+            - db_data_relation
+        # command: bash -c "npx prisma studio"
+    db_data_relation:
+        image: postgres:15
+        container_name: db_data_relation
+        volumes:
+           - ./db:/var/lib/postgresql/data
+        env_file:
+           - .env
+        ports:
+        - "5432:5432"
