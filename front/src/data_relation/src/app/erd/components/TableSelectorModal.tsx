@@ -1,38 +1,76 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import Button from '@/components/Button';
-
-interface Column {
-  name: string;
-  type: string;
-  constraints: string;
-  comment?: string | null;
-}
-
-interface Table {
-  id: number;
-  name: string;
-  columns: Column[];
-}
+import Select from 'react-select';
+import { Database, Table } from '@/types/types';
+import { getDatabases, getTables, registerTablesToProject } from './actions';
+import { fetchTablesFromDatabase } from './actions'
+import { useRouter } from 'next/navigation';
 
 interface TableSelectorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  tables: Table[];
-  onSelectTable: (table: Table) => void;
-  selectedTable: Table | null;
+  // onSelectTable: (table: Table) => void;
+  // selectedTable: Table | null;
   onAddTable: (tableId: number) => void;
+  projectId: number;
 }
 
 export default function TableSelectorModal({
   isOpen,
   onClose,
-  tables,
-  onSelectTable,
-  selectedTable,
+  // onSelectTable,
+  // selectedTable,
   onAddTable,
+  projectId
 }: TableSelectorModalProps) {
+  const [databases, setDatabases] = useState<Database[]>([]);
+  const [selectedDatabase, setSelectedDatabase] = useState<Database | null>(null);
+  const [tables, setTables] = useState<Table[]>([]);
+  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchDatabases = async () => {
+      const data = await getDatabases();
+      setDatabases(data);
+    };
+    fetchDatabases();
+  }, []);
+
+  const handleSelectTable = (table: Table) => {
+    setSelectedTable(table);
+  };
+
+  const handleSelectDatabase = async (database: Database | null) => {
+    setSelectedDatabase(database);
+    setTables([]);
+    setSelectedTable(null);
+    if (database) {
+      const data = await fetchTablesFromDatabase(database.id);
+      setTables(data);
+    }
+  };
+
+  const handleAddTables = async (projectId: number) => {
+    if (!selectedDatabase || !selectedTable) {
+      alert('データベースとテーブルを選択してください');
+      return;
+    }
+
+    const result = await registerTablesToProject(selectedDatabase.id, projectId, selectedTable);
+
+    if (result.success) {
+      alert(result.message);
+      onClose();
+      router.refresh();
+    } else {
+      alert(result.message);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
@@ -43,21 +81,33 @@ export default function TableSelectorModal({
           </DialogTitle>
           <div className="flex space-x-4 mt-4">
             <div className="w-1/2">
-              {tables.length > 0 ? (
-                <ul className="max-h-96 overflow-y-auto bg-white border rounded-lg">
-                  {tables.map((table) => (
-                    <li
-                      key={table.id}
-                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                      onClick={() => onSelectTable(table)}
-                    >
-                      {table.name}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-gray-600">利用可能なテーブルがありません</p>
-              )}
+              <div className="mt-4">
+                {/* データベース選択 */}
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  データベース
+                </label>
+                <Select
+                  options={databases}
+                  getOptionLabel={(option: Database) => option?.name}
+                  getOptionValue={(option: Database) => option?.id.toString()}
+                  onChange={(option: Database) => handleSelectDatabase(option)}
+                  placeholder="データベースを選択..."
+                  isClearable
+                  className="mb-4"
+                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  テーブル
+                </label>
+                <Select
+                  options={tables}
+                  getOptionLabel={(option: Table) => option.name}
+                  getOptionValue={(option: Table) => option.id.toString()}
+                  onChange={(option: Table) => handleSelectTable(option as Table)}
+                  placeholder="テーブルを選択..."
+                  isClearable
+                  className="mb-4"
+                />
+              </div>
             </div>
             <div className="w-1/2">
               {selectedTable ? (
@@ -88,7 +138,7 @@ export default function TableSelectorModal({
                     <p className="text-sm text-gray-600">カラムがありません</p>
                   )}
                   <Button
-                    onClick={() => onAddTable(selectedTable.id)}
+                    onClick={() => handleAddTables(projectId)}
                     variant="primary"
                     className="mt-4"
                   >

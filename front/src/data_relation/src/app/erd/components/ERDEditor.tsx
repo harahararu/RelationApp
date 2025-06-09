@@ -167,38 +167,34 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
     }
   }, [projectId, setNodes, setEdges]);
 
-  const handleAddTable = async (tableId: number) => {
-    const formData = new FormData();
-    formData.append('projectId', projectId.toString());
-    formData.append('tableId', tableId.toString());
-    try {
-      const result = await addTableToProject({}, formData);
-      if (result.success) {
-        const table = availableTables.find((t) => t.id === tableId);
-        if (table) {
-          setNodes((nds) => [
-            ...nds,
-            {
-              id: table.id.toString(),
-              type: 'table',
-              position: { x: Math.random() * 500, y: Math.random() * 500 },
-              data: { name: table.name, columns: table.columns },
-            },
-          ]);
-          setIsModalOpen(false);
-        }
-      } else {
-        alert(result.errors?._form?.[0] || 'テーブル追加に失敗しました');
-      }
-    } catch (error) {
-      console.error('テーブル追加に失敗しました:', error);
-      alert('テーブル追加に失敗しました');
-    }
-  };
-
-  const handleTableSelect = useCallback((table: ERDEditorProps['availableTables'][0]) => {
-    setSelectedTable(table);
-  }, []);
+  // const handleAddTable = async (tableId: number) => {
+  //   const formData = new FormData();
+  //   formData.append('projectId', projectId.toString());
+  //   formData.append('tableId', tableId.toString());
+  //   try {
+  //     const result = await addTableToProject({}, formData);
+  //     if (result.success) {
+  //       const table = availableTables.find((t) => t.id === tableId);
+  //       if (table) {
+  //         setNodes((nds) => [
+  //           ...nds,
+  //           {
+  //             id: table.id.toString(),
+  //             type: 'table',
+  //             position: { x: Math.random() * 500, y: Math.random() * 500 },
+  //             data: { name: table.name, columns: table.columns },
+  //           },
+  //         ]);
+  //         setIsModalOpen(false);
+  //       }
+  //     } else {
+  //       alert(result.errors?._form?.[0] || 'テーブル追加に失敗しました');
+  //     }
+  //   } catch (error) {
+  //     console.error('テーブル追加に失敗しました:', error);
+  //     alert('テーブル追加に失敗しました');
+  //   }
+  // };
 
   // カスタム削除イベントのリスナー
   useEffect(() => {
@@ -255,10 +251,11 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
         <TableSelectorModal
           isOpen={isOpen}
           onClose={closeModal}
-          tables={availableTables}
-          onSelectTable={handleTableSelect}
-          selectedTable={selectedTable}
-          onAddTable={handleAddTable}
+          projectId={projectId}
+          // tables={availableTables}
+          // onSelectTable={handleTableSelect}
+          // selectedTable={selectedTable}
+          // onAddTable={handleAddTable}
         />
       </div>
       {editingEdge && (

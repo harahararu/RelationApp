@@ -266,7 +266,7 @@ const CustomTableNode: React.FC<NodeProps> = ({ id, data }) => {
 
   // ハンドルの位置を計算（カラムの高さに合わせる）
   const getHandleTop = (index: number) => {
-    const baseOffset = 60; // テーブル名とパディングの高さ
+    const baseOffset = 65; // テーブル名とパディングの高さ
     const columnHeight = 28; // 各カラムの<li>高さ（Tailwindのpy-1とフォントサイズに基づく）
     return baseOffset + index * columnHeight;
   };
@@ -281,24 +281,6 @@ const CustomTableNode: React.FC<NodeProps> = ({ id, data }) => {
           {error}
         </div>
       )}
-      {/* ハンドル */}
-      {columns.map((col: Column, index: number) => (
-        <div key={col.id}>
-          <Handle
-            type="source"
-
-            position={Position.Right}
-            id={`${data.name}.${col.name}`}
-            style={{ top: getHandleTop(index), background: '#2563eb', width: 8, height: 8 }}
-          />
-          <Handle
-            type="target"
-            position={Position.Left}
-            id={`${data.name}.${col.name}`}
-            style={{ top: getHandleTop(index), background: '#2563eb', width: 8, height: 8 }}
-          />
-        </div>
-      ))}
       <button
         onClick={onDelete}
         className="absolute top-1 right-1 bg-red-500 text-white text-xs p-1 rounded-full hover:bg-red-600 transition"
@@ -325,94 +307,108 @@ const CustomTableNode: React.FC<NodeProps> = ({ id, data }) => {
       {/* カラムリスト */}
       <ul className="text-sm text-gray-600">
         {columns.map((col: Column, index: number) => (
-          <li key={col.id} className="py-1 flex items-center space-x-2">
-            {editingColumnIndex === index ? (
-              <div className="flex flex-col w-full">
-                <input
-                  type="text"
-                  value={editingColumn?.name || ''}
-                  onChange={(e) =>
-                    setEditingColumn({ ...editingColumn!, name: e.target.value })
-                  }
-                  placeholder="カラム名"
-                  className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary mb-1"
-                />
-                <select
-                  value={editingColumn?.type || 'string'}
-                  onChange={(e) =>
-                    setEditingColumn({ ...editingColumn!, type: e.target.value })
-                  }
-                  className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary mb-1"
-                >
-                  <option value="string">string</option>
-                  <option value="integer">integer</option>
-                  <option value="boolean">boolean</option>
-                </select>
-                <div className="flex items-center space-x-2 mb-1">
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={editingColumn?.constraints.includes('PRIMARY_KEY')}
-                      onChange={(e) =>
-                        setEditingColumn({
-                          ...editingColumn!,
-                          constraints: e.target.checked
-                            ? [...editingColumn!.constraints, 'PRIMARY_KEY']
-                            : editingColumn!.constraints.filter((c) => c !== 'PRIMARY_KEY'),
-                        })
-                      }
-                      className="mr-1"
-                    />
-                    PK
-                  </label>
-                </div>
-                <input
-                  type="text"
-                  value={editingColumn?.comment || ''}
-                  onChange={(e) =>
-                    setEditingColumn({ ...editingColumn!, comment: e.target.value })
-                  }
-                  placeholder="コメント"
-                  className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary mb-1"
-                />
-                <div className="flex space-x-2 mt-1">
-                  <button
-                    onClick={handleSaveColumn}
-                    className="bg-primary text-white px-2 py-1 rounded-md hover:bg-blue-700 transition"
+          <div key={col.id}>
+            <Handle
+              type="source"
+              position={Position.Right}
+              id={`${data.name}.${col.name}`}
+              style={{ top: getHandleTop(index), background: '#2563eb', width: 8, height: 8 }}
+            />
+            <Handle
+              type="target"
+              position={Position.Left}
+              id={`${data.name}.${col.name}`}
+              style={{ top: getHandleTop(index), background: '#2563eb', width: 8, height: 8 }}
+            />
+            <li className="py-1 flex items-center space-x-2">
+              {editingColumnIndex === index ? (
+                <div className="flex flex-col w-full">
+                  <input
+                    type="text"
+                    value={editingColumn?.name || ''}
+                    onChange={(e) =>
+                      setEditingColumn({ ...editingColumn!, name: e.target.value })
+                    }
+                    placeholder="カラム名"
+                    className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary mb-1"
+                  />
+                  <select
+                    value={editingColumn?.type || 'string'}
+                    onChange={(e) =>
+                      setEditingColumn({ ...editingColumn!, type: e.target.value })
+                    }
+                    className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary mb-1"
                   >
-                    保存
+                    <option value="string">string</option>
+                    <option value="integer">integer</option>
+                    <option value="boolean">boolean</option>
+                  </select>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={editingColumn?.constraints.includes('PRIMARY_KEY')}
+                        onChange={(e) =>
+                          setEditingColumn({
+                            ...editingColumn!,
+                            constraints: e.target.checked
+                              ? [...editingColumn!.constraints, 'PRIMARY_KEY']
+                              : editingColumn!.constraints.filter((c) => c !== 'PRIMARY_KEY'),
+                          })
+                        }
+                        className="mr-1"
+                      />
+                      PK
+                    </label>
+                  </div>
+                  <input
+                    type="text"
+                    value={editingColumn?.comment || ''}
+                    onChange={(e) =>
+                      setEditingColumn({ ...editingColumn!, comment: e.target.value })
+                    }
+                    placeholder="コメント"
+                    className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary mb-1"
+                  />
+                  <div className="flex space-x-2 mt-1">
+                    <button
+                      onClick={handleSaveColumn}
+                      className="bg-primary text-white px-2 py-1 rounded-md hover:bg-blue-700 transition"
+                    >
+                      保存
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingColumnIndex(null);
+                        setEditingColumn(null);
+                      }}
+                      className="border border-gray-300 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-100 transition"
+                    >
+                      キャンセル
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <span>
+                    {col.name} ({col.type}) {col.constraints.includes('PRIMARY_KEY') ? '[PK]' : ''} {col.fk ? `[FK: ${col.fk}]` : ''} {col.comment ? `// ${col.comment}` : ''}
+                  </span>
+                  <button
+                    onClick={() => handleEditColumn(index)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    編集
                   </button>
                   <button
-                    onClick={() => {
-                      setEditingColumnIndex(null);
-                      setEditingColumn(null);
-                    }}
-                    className="border border-gray-300 text-gray-600 px-2 py-1 rounded-md hover:bg-gray-100 transition"
+                    onClick={() => handleDeleteColumn(index)}
+                    className="text-xs text-red-500 hover:underline"
                   >
-                    キャンセル
+                    削除
                   </button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <span>
-                  {col.name} ({col.type}) {col.constraints.includes('PRIMARY_KEY') ? '[PK]' : ''} {col.fk ? `[FK: ${col.fk}]` : ''} {col.comment ? `// ${col.comment}` : ''}
-                </span>
-                <button
-                  onClick={() => handleEditColumn(index)}
-                  className="text-xs text-primary hover:underline"
-                >
-                  編集
-                </button>
-                <button
-                  onClick={() => handleDeleteColumn(index)}
-                  className="text-xs text-red-500 hover:underline"
-                >
-                  削除
-                </button>
-              </>
-            )}
-          </li>
+                </>
+              )}
+            </li>
+          </div>
         ))}
       </ul>
       {/* カラム追加 */}

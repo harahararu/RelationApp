@@ -1,8 +1,4 @@
-'use client';
-import { useActionState, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { updateDatabase } from '../../actions';
-import { testDatabaseConnection } from '@/lib/dbacess'
+
 
 interface DatabaseFormData {
   name: string;
@@ -14,59 +10,9 @@ interface DatabaseFormData {
   password: string;
 }
 
-export default function EditDatabaseForm({
-  databaseId,
-  initialData,
-}: {
-  databaseId: number;
-  initialData: DatabaseFormData;
-}) {
-  const router = useRouter();
-  const [state, formAction, updatePending] = useActionState(updateDatabase, {});
-  const [testState, testAction, testPending] = useActionState(testDatabaseConnection, { success: false, message: '' });
-
-  const [formData, setFormData] = useState({
-    name: initialData.name,
-    dbms: initialData.dbms,
-    host: initialData.host,
-    port: initialData.port ?? '',
-    databaseName: initialData.databaseName,
-    username: initialData.username,
-    password: initialData.password,
-  });
-
-  // 入力値の変更ハンドラー
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'port' ? (value ? Number(value) : '') : value,
-    }));
-  };
-
-  const handleTestConnection = (formAction: (formData: FormData) => void) => {
-    const testformData = new FormData();
-    testformData.append('id', String(databaseId));
-    testformData.append('name', formData.name);
-    testformData.append('dbms', formData.dbms);
-    testformData.append('host', formData.host);
-    testformData.append('port', String(formData.port));
-    testformData.append('databaseName', formData.databaseName);
-    testformData.append('username', formData.username);
-    testformData.append('password', formData.password);
-    formAction(testformData);
-  };
-
-  useEffect(() => {
-    if (state.success) {
-      router.push('/databases');
-    }
-  }, [state.success, router]);
-
-  return (
-    <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">データベース編集</h1>
-      <form action={formAction} className="space-y-4">
+const EditForm = () => {
+    return (
+        <form action={formAction} className="space-y-4">
         <input type="hidden" name="id" value={databaseId} />
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -76,11 +22,9 @@ export default function EditDatabaseForm({
             type="text"
             name="name"
             id="name"
-            value={formData.name}
-            onChange={handleChange}
+            defaultValue={initialData.name}
             placeholder="データベース名を入力"
             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            disabled={updatePending || testPending}
           />
           {state.errors?.name && (
             <p className="mt-1 text-sm text-red-600">{state.errors.name[0]}</p>
@@ -93,10 +37,8 @@ export default function EditDatabaseForm({
           <select
             name="dbms"
             id="dbms"
-            value={formData.dbms}
-            onChange={handleChange}
+            defaultValue={initialData.dbms}
             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            disabled={updatePending || testPending}
           >
             <option value="PostgreSQL">PostgreSQL</option>
             <option value="MySQL">MySQL</option>
@@ -115,11 +57,9 @@ export default function EditDatabaseForm({
             type="text"
             name="host"
             id="host"
-            value={formData.host}
-            onChange={handleChange}
+            defaultValue={initialData.host}
             placeholder="ホストを入力（例: localhost）"
             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            disabled={updatePending || testPending}
           />
           {state.errors?.host && (
             <p className="mt-1 text-sm text-red-600">{state.errors.host[0]}</p>
@@ -133,11 +73,9 @@ export default function EditDatabaseForm({
             type="number"
             name="port"
             id="port"
-            value={formData.port}
-            onChange={handleChange}
+            defaultValue={initialData.port ?? undefined}
             placeholder="ポートを入力（例: 5432）"
             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            disabled={updatePending || testPending}
           />
           {state.errors?.port && (
             <p className="mt-1 text-sm text-red-600">{state.errors.port[0]}</p>
@@ -151,11 +89,9 @@ export default function EditDatabaseForm({
             type="text"
             name="databaseName"
             id="databaseName"
-            value={formData.databaseName}
-            onChange={handleChange}
+            defaultValue={initialData.databaseName}
             placeholder="データベース名を入力"
             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            disabled={updatePending || testPending}
           />
           {state.errors?.databaseName && (
             <p className="mt-1 text-sm text-red-600">{state.errors.databaseName[0]}</p>
@@ -169,11 +105,9 @@ export default function EditDatabaseForm({
             type="text"
             name="username"
             id="username"
-            value={formData.username}
-            onChange={handleChange}
+            defaultValue={initialData.username}
             placeholder="ユーザー名を入力"
             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            disabled={updatePending || testPending}
           />
           {state.errors?.username && (
             <p className="mt-1 text-sm text-red-600">{state.errors.username[0]}</p>
@@ -187,11 +121,9 @@ export default function EditDatabaseForm({
             type="password"
             name="password"
             id="password"
-            value={formData.password}
-            onChange={handleChange}
+            defaultValue={initialData.password}
             placeholder="パスワードを入力"
             className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            disabled={updatePending || testPending}
           />
           {state.errors?.password && (
             <p className="mt-1 text-sm text-red-600">{state.errors.password[0]}</p>
@@ -200,18 +132,12 @@ export default function EditDatabaseForm({
         {state.errors?._form && (
           <p className="text-sm text-red-600">{state.errors._form[0]}</p>
         )}
-        {testState.message && (
-          <p className={`mt-2 text-sm ${testState.success ? 'text-green-600' : 'text-red-600'}`}>
-            {testState.message}
-          </p>
-        )}
         <div className="flex space-x-4">
           <button
             type="submit"
-            disabled={updatePending || testPending}
             className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
           >
-            {updatePending ? '更新中...' : '更新'}
+            更新
           </button>
           <button
             type="button"
@@ -221,15 +147,17 @@ export default function EditDatabaseForm({
             キャンセル
           </button>
           <button
-            type="submit"
-            formAction={(formData) => handleTestConnection(testAction)}
-            disabled={updatePending || testPending}
+            type="button"
+            onClick={() => {
+              const form = document.querySelector('form');
+              console.log(form)
+              if (form) testAction(new FormData(form));
+            }}
             className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition"
           >
-            {testPending ? 'テスト中...' : '接続テスト'}
+            接続テスト
           </button>
         </div>
       </form>
-    </div>
-  );
+    )
 }

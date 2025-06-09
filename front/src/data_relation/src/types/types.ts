@@ -1,0 +1,27 @@
+export interface Database {
+  id: number;
+  name: string;
+}
+
+export interface Column {
+  id: number;
+  name: string;
+  type: string;
+  constraints: string[];
+  comment?: string | null;
+}
+
+export interface Table {
+  id: number;
+  name: string;
+  columns: Column[];
+}
+
+export interface TableSelectorModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  tables: Table[];
+  onSelectTable: (table: Table) => void;
+  selectedTable: Table | null;
+  onAddTable: (tableId: number) => void;
+}
