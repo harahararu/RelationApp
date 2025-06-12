@@ -14,13 +14,10 @@ import {
 } from '@xyflow/react';
 import CustomTableNode from './CustomTableNode';
 import CustomRelationshipEdge from './CustomRelationshipEdge';
-import { createEdge, updateEdge, deleteEdge, getAvailableTables, removeTableFromProject, addTableToProject } from './actions';
-import Button from '@/components/Button';
-import TableSelectorModal from './TableSelectorModal';
+import { createEdge, updateEdge, deleteEdge, removeTableFromProject } from './actions';
 import { Table } from '@/types/types';
-import { useModal } from '@/hooks/useModal';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import SidebarMenu from './SidebarMenu';
 
 const nodeTypes = { table: CustomTableNode };
 const edgeTypes = { relationship: CustomRelationshipEdge };
@@ -29,18 +26,17 @@ interface ERDEditorProps {
     initialNodes: Node[];
     initialEdges: Edge[];
     projectId: number;
-    availableTables: { id: number; name: string; columns: { name: string; type: string, constraints: true, comment: true }[] }[];
+    availableTables: { id: number; name: string; columns: { name: string; type: string, constraints: string[], comment: string | null }[] }[];
 }
 
 const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, projectId }) => {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [availableTables, setAvailableTables] = useState<{ id: number; name: string }[]>([]);
+    
+    
     const [error, setError] = useState<string | null>(null);
     const [editingEdge, setEditingEdge] = useState<Edge | null>(null);
-    const { isOpen, openModal, closeModal } = useModal();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    
     const router = useRouter();
 
     const mappedNodes = nodes.map((node) => ({
@@ -53,14 +49,6 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
             projectId,
         },
     }));
-
-    useEffect(() => {
-        async function fetchTables() {
-            const tables = await getAvailableTables();
-            setAvailableTables(tables);
-        }
-        fetchTables();
-    }, []);
 
     const onConnect = useCallback(
         async (params: Connection) => {
@@ -169,27 +157,6 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
         }
     }, [projectId, setNodes, setEdges]);
 
-    const handleAddTable = async (tableId: number) => {
-        const formData = new FormData();
-        formData.append('projectId', projectId.toString());
-        formData.append('tableId', tableId.toString());
-        try {
-            const result = await addTableToProject({}, formData);
-            if (result.success) {
-                const table = availableTables.find((t) => t.id === tableId);
-                if (table) {
-                    addNewTadleNode(table as Table)
-                    setIsModalOpen(false);
-                }
-            } else {
-                alert(result.errors?._form?.[0] || 'テーブル追加に失敗しました');
-            }
-        } catch (error) {
-            console.error('テーブル追加に失敗しました:', error);
-            alert('テーブル追加に失敗しました');
-        }
-    };
-
     const addNewTadleNode = (newTable: Table) => {
         setNodes((nds) => [
             ...nds,
@@ -221,32 +188,9 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
 
     return (
         <div className="h-screen flex">
-            <div
-                className={`bg-gray-100 shadow-md transition-width ease-in-out ${isSidebarOpen ? 'w-64' : 'w-12'} flex flex-col`}>
-                <div className="p-4 flex items-center justify-between min-w-[64px]">
-                    {isSidebarOpen && <h2 className="text-lg font-semibold">テーブル管理</h2>}
-                    <button
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-2"
-                    >
-                        {isSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
-                    </button>
-                </div>
-                {isSidebarOpen && (
-                    <div className="flex-1 p-4 overflow-y-auto">
-                        <Button
-                            onClick={() => router.push('/projects')}
-                            variant="secondary"
-                            className="w-full mb-4"
-                        >
-                            プロジェクト一覧に戻る
-                        </Button>
-                        <Button onClick={openModal} variant="primary">
-                            テーブルを追加
-                        </Button>
-                    </div>
-                )}
-            </div>
+            <SidebarMenu 
+                projectId={projectId}
+            />
             <div className="flex-1 flex flex-col">
                 {error && (
                     <div className="p-4 bg-red-100 text-red-700 text-sm">
@@ -268,18 +212,13 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
                     <Controls />
                     <Background />
                 </ReactFlow>
-                <TableSelectorModal
-                    isOpen={isOpen}
-                    onClose={closeModal}
-                    projectId={projectId}
-                    addNewTableNode={addNewTadleNode}
-                />
+
             </div>
             {editingEdge && (
                 <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg shadow-lg border border-gray-200 z-50">
                     <h3 className="text-lg font-semibold mb-2">エッジ編集</h3>
                     <select
-                        value={editingEdge.data.cardinality}
+                        value={editingEdge.data?.cardinality}
                         onChange={(e) => handleEdgeEdit(editingEdge.id, e.target.value)}
                         className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary mb-2"
                     >
