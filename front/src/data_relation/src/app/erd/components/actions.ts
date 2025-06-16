@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { Table } from '@/types/types';
-import { fetchTablesFromMySQL, fetchTablesFromOracle, fetchTablesFromPostgreSQL } from '@/lib/dbSelect';
+import { fetchTableNamesFromMySQL, fetchTableFromMySQL, fetchTableNamesFromOracle, fetchTableFromOracle, fetchTableNamesFromPostgreSQL, fetchTableFromPostgreSQL } from '@/lib/dbSelect';
 
 const addTableToProjectSchema = z.object({
     projectId: z.number(),
@@ -205,7 +205,7 @@ export async function getAvailableTables() {
     });
 }
 
-export async function fetchTablesFromDatabase(databaseId: number): Promise<Table[]> {
+export async function fetchTableNamesFromDatabase(databaseId: number): Promise<string[]> {
     try {
         const db = await prisma.database.findUnique({
             where: { id: databaseId },
@@ -224,14 +224,14 @@ export async function fetchTablesFromDatabase(databaseId: number): Promise<Table
         }
 
         const dbms = db.dbms.toLowerCase();
-        let tableList: Table[] = [];
+        let tableList: string[] = [];
 
         if (dbms === 'mysql') {
-            tableList = await fetchTablesFromMySQL(db);
+            tableList = await fetchTableNamesFromMySQL(db);
         } else if (dbms === 'postgresql') {
-            tableList = await fetchTablesFromPostgreSQL(db);
+            tableList = await fetchTableNamesFromPostgreSQL(db);
         } else if (dbms === 'oracle') {
-            tableList = await fetchTablesFromOracle(db);
+            tableList = await fetchTableNamesFromOracle(db);
         } else {
             throw new Error(`未対応のDBMS: ${dbms}`);
         }
@@ -242,12 +242,49 @@ export async function fetchTablesFromDatabase(databaseId: number): Promise<Table
         return [];
     }
 }
+export async function fetchTableFromDatabase(databaseId: number, tableName: string): Promise<Table | null> {
+    try {
+        const db = await prisma.database.findUnique({
+            where: { id: databaseId },
+            select: {
+                host: true,
+                port: true,
+                databaseName: true,
+                username: true,
+                password: true,
+                dbms: true,
+            },
+        });
+
+        if (!db) {
+            throw new Error('データベースが見つかりません');
+        }
+
+        const dbms = db.dbms.toLowerCase();
+        let table:Table;
+
+        if (dbms === 'mysql') {
+            table = await fetchTableFromMySQL(db, tableName);
+        } else if (dbms === 'postgresql') {
+            table = await fetchTableFromPostgreSQL(db, tableName);
+        } else if (dbms === 'oracle') {
+            table = await fetchTableFromOracle(db, tableName);
+        } else {
+            throw new Error(`未対応のDBMS: ${dbms}`);
+        }
+
+        return table;
+    } catch (error) {
+        console.error('Error fetching tables from database:', error);
+        return null;
+    }
+}
 
 export async function registerTablesToProject(
     databaseId: number,
     projectId: number,
     table: Table
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ success: boolean; message: string, post:Table | null }> {
     try {
         // テーブルが既に登録済みかチェック
         const existingTable = await prisma.table.findFirst({
@@ -297,9 +334,21 @@ export async function registerTablesToProject(
             });
         }
 
-        return { success: true, message: 'テーブルを登録しました' };
+        const postTable = await prisma.table.findUnique({
+			select: {
+				id: true,
+				name: true,
+				columns: {
+					select: { id: true, name: true, type: true, constraints: true, comment: true },
+				},
+			},
+            where: {
+                id: tableId
+            }
+		})
+        return { success: true, message: 'テーブルを登録しました', post:postTable };
     } catch (error) {
         console.error('Error registering tables:', error);
-        return { success: false, message: 'テーブルの登録に失敗しました' };
+        return { success: false, message: 'テーブルの登録に失敗しました', post:null };
     }
 }

@@ -1,5 +1,4 @@
 import React, { FC } from "react";
-import { Transition } from "@headlessui/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useSidebar } from "@/hooks/useSidebar";
 
@@ -18,23 +17,13 @@ const SidebarMenu: FC<SidebarMenuProps> = ({
 
   return (
     <nav
-      className="bg-gray-100 shadow-md flex flex-col h-full transition-all duration-300 ease-in-out"
-      style={{ width: isSidebarOpen ? "16rem" : "3rem" }}
+      className={`bg-gray-100 shadow-md transition-all ease-in-out ${
+        isSidebarOpen ? "w-64" : "w-12"
+      } flex flex-col h-full`}
       aria-label={ariaLabel}
-      aria-expanded={isSidebarOpen}
     >
-      <div className="p-4 flex items-center justify-between min-w-[3rem]">
-        <Transition
-          show={isSidebarOpen}
-          enter="transition-opacity duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="transition-opacity duration-300"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
-        >
-          {header}
-        </Transition>
+      <div className="p-4 flex items-center justify-between min-w-[64px]">
+        {isSidebarOpen && header}
         <button
           onClick={toggleSidebar}
           className="p-2 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
@@ -43,17 +32,9 @@ const SidebarMenu: FC<SidebarMenuProps> = ({
           {isSidebarOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
         </button>
       </div>
-      <Transition
-        show={isSidebarOpen}
-        enter="transition-opacity duration-300"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-opacity duration-300"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-      >
+      {isSidebarOpen && (
         <div className="flex-1 p-4 overflow-y-auto">{children}</div>
-      </Transition>
+      )}
     </nav>
   );
 };

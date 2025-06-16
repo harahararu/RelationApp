@@ -15,7 +15,7 @@ import {
 import CustomTableNode from './CustomTableNode';
 import CustomRelationshipEdge from './CustomRelationshipEdge';
 import { createEdge, updateEdge, deleteEdge, removeTableFromProject } from './actions';
-import { Table } from '@/types/types';
+import { Table, Column } from '@/types/types';
 import { useRouter } from 'next/navigation';
 import SidebarMenu from './SidebarMenu';
 
@@ -67,8 +67,8 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
             const sourceColumnName = params.sourceHandle.split('.')[1];
             const targetColumnName = params.targetHandle.split('.')[1];
 
-            const sourceColumn = sourceNode.data.columns.find((c: any) => c.name === sourceColumnName);
-            const targetColumn = targetNode.data.columns.find((c: any) => c.name === targetColumnName);
+            const sourceColumn = sourceNode.data.columns.find((c: Column) => c.name === sourceColumnName);
+            const targetColumn = targetNode.data.columns.find((c: Column) => c.name === targetColumnName);
 
             if (!sourceColumn || !targetColumn) {
                 setError('カラムが見つかりません。');
@@ -190,6 +190,7 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
         <div className="h-screen flex">
             <SidebarMenu 
                 projectId={projectId}
+                setNodes={setNodes}
             />
             <div className="flex-1 flex flex-col">
                 {error && (
@@ -218,7 +219,7 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
                 <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-4 rounded-lg shadow-lg border border-gray-200 z-50">
                     <h3 className="text-lg font-semibold mb-2">エッジ編集</h3>
                     <select
-                        value={editingEdge.data?.cardinality}
+                        value={editingEdge.data?.cardinality as string[]}
                         onChange={(e) => handleEdgeEdit(editingEdge.id, e.target.value)}
                         className="w-full border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary mb-2"
                     >

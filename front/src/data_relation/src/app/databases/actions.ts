@@ -45,7 +45,7 @@ export async function createDatabase(
   });
 
   if (!validated.success) {
-    return { errors: validated.error.flatten().fieldErrors };
+    return { errors: {validate:validated.error.flatten().fieldErrors} };
   }
 
   const { name, dbms, host, port, databaseName, username, password } = validated.data;
@@ -82,7 +82,7 @@ export async function updateDatabase(
   });
 
   if (!validated.success) {
-    return { errors: validated.error.flatten().fieldErrors };
+    return { errors: {validate:validated.error.flatten().fieldErrors} };
   }
 
   const { name, dbms, host, port, databaseName, username, password } = validated.data;

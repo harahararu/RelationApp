@@ -1,11 +1,10 @@
 import Button from "@/components/Button";
-import { useModal } from "@/hooks/useModal";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
 import { addTableToProject, getAvailableTables } from "./actions";
-import TableSelectorModal from "./TableSelectorModal";
 import { Table } from "@/types/types";
-import SidebarMenu from "@/components/SIdebarMenu";
+import SidebarMenu from "@/components/SidebarMenu";
+import AddDbTable from "./AddDbTable";
 
 type ERDSidebarProps = {
     projectId: number;
@@ -13,7 +12,6 @@ type ERDSidebarProps = {
 }
 
 const ERDSidebar:React.FC<ERDSidebarProps> = ({ projectId, setNodes }) => {
-    const [ModalWrapper, openModal, closeModal] = useModal();
     const [availableTables, setAvailableTables] = useState<{ id: number; name: string }[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
@@ -55,6 +53,7 @@ const ERDSidebar:React.FC<ERDSidebarProps> = ({ projectId, setNodes }) => {
     //     };
 
     const addNewTadleNode = (newTable: Table) => {
+        router.refresh()
         setNodes((nds:Node[]) => [
             ...nds,
             {
@@ -65,7 +64,6 @@ const ERDSidebar:React.FC<ERDSidebarProps> = ({ projectId, setNodes }) => {
             },
         ]);
     }
-
 
     return (
         <>
@@ -82,32 +80,17 @@ const ERDSidebar:React.FC<ERDSidebarProps> = ({ projectId, setNodes }) => {
                     >
                         プロジェクト一覧に戻る
                     </Button>
-                    <Button
-                    onClick={openModal}
-                    color="primary"
-                    className="w-full"
-                    disabled={isLoading}
-                    >
-                    テーブルを追加
-                    </Button>
+                    <AddDbTable 
+                        projectId={projectId}
+                        addNewTableNode={addNewTadleNode}
+                        isLoading={isLoading}
+                    />
                     {isLoading && (
                         <div className="text-center text-gray-500">読み込み中...</div>
                     )}
                 </div>
             </SidebarMenu>
-            <ModalWrapper
-                title="テーブル選択"
-                size="lg"
-                disableOverlayClick={false}
-                className="max-h-[80vh] overflow-y-auto"
-            >
-                <TableSelectorModal
-                    onClose={closeModal}
-                    projectId={projectId}
-                    addNewTableNode={addNewTadleNode}
-                    isLoading={isLoading}
-                />
-            </ModalWrapper>
+            
         </>
     );
 }
