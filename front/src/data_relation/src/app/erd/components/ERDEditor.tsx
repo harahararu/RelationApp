@@ -11,12 +11,12 @@ import {
     Node,
     Edge,
     Connection,
+    NodeChange,
 } from '@xyflow/react';
 import CustomTableNode from './CustomTableNode';
 import CustomRelationshipEdge from './CustomRelationshipEdge';
-import { createEdge, updateEdge, deleteEdge, removeTableFromProject } from './actions';
+import { createEdge, updateEdge, deleteEdge, removeTableFromProject, updateNodePosition } from './actions';
 import { Table, Column } from '@/types/types';
-import { useRouter } from 'next/navigation';
 import SidebarMenu from './SidebarMenu';
 
 const nodeTypes = { table: CustomTableNode };
@@ -37,8 +37,6 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
     const [error, setError] = useState<string | null>(null);
     const [editingEdge, setEditingEdge] = useState<Edge | null>(null);
     
-    const router = useRouter();
-
     const mappedNodes = nodes.map((node) => ({
         ...node,
         data: {
@@ -50,6 +48,30 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
         },
     }));
 
+    const handleNodesChange = useCallback(
+        async (changes: NodeChange[]) => {
+        onNodesChange(changes); // 既存のノード変更処理を適用
+
+        for (const change of changes) {
+            if (change.type === 'position' && change.position && !change.dragging) {
+            const nodeId = change.id;
+            const position = change.position;
+
+            try {
+                const result = await updateNodePosition(nodeId, position, projectId);
+                if (!result.success) {
+                setError(result.error || 'ノードの座標更新に失敗しました');
+                }
+            } catch (e) {
+                console.error('Node position update failed:', e);
+                setError('ノードの座標更新に失敗しました');
+            }
+            }
+        }
+        },
+        [onNodesChange, projectId]
+    );
+
     const onConnect = useCallback(
         async (params: Connection) => {
             if (!params.sourceHandle || !params.targetHandle) {
@@ -57,8 +79,8 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
                 setError('無効な接続です。');
                 return;
             }
-            const sourceNode = nodes.find((n) => n.id === params.source);
-            const targetNode = nodes.find((n) => n.id === params.target);
+            const sourceNode = nodes.find((n: Node) => n.id === params.source);
+            const targetNode = nodes.find((n: Node) => n.id === params.target);
             if (!sourceNode || !targetNode) {
                 setError('ノードが見つかりません。');
                 return;
@@ -157,18 +179,6 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
         }
     }, [projectId, setNodes, setEdges]);
 
-    const addNewTadleNode = (newTable: Table) => {
-        setNodes((nds) => [
-            ...nds,
-            {
-                id: newTable.id.toString(),
-                type: 'table',
-                position: { x: Math.random() * 500, y: Math.random() * 500 },
-                data: { name: newTable.name, columns: newTable.columns },
-            },
-        ]);
-    }
-
     // カスタム削除イベントのリスナー
     useEffect(() => {
         const handleNodeDelete = (event: Event) => {
@@ -201,7 +211,7 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
                 <ReactFlow
                     nodes={mappedNodes}
                     edges={edges}
-                    onNodesChange={onNodesChange}
+                    onNodesChange={handleNodesChange}
                     onEdgesChange={onEdgesChange}
                     onNodesDelete={onNodesDelete}
                     onConnect={onConnect}

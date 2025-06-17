@@ -132,6 +132,26 @@ export async function removeTableFromProject(formData: FormData) {
     }
 }
 
+export async function updateNodePosition(tableId: string, position: { x: number; y: number }, projectId: number) {
+  try {
+    const updatedProjectTable = await prisma.projectTable.update({
+      where: {
+        projectId_tableId: {
+          projectId: projectId,
+          tableId: parseInt(tableId), // tableId は文字列として渡されるため、整数に変換
+        },
+      },
+      data: {
+        positionX: position.x,
+        positionY: position.y,
+      },
+    });
+    return { success: true, data: updatedProjectTable };
+  } catch (error) {
+    console.error('Failed to update node position:', error);
+    return { success: false, error: 'ノードの座標更新に失敗しました' };
+  }
+}
 export async function createColumn(data: { tableId: string; name: string; type: string; constraints?: string[] }) {
     const column = await prisma.column.create({
         data: {
@@ -144,6 +164,7 @@ export async function createColumn(data: { tableId: string; name: string; type: 
     revalidatePath('/erd');
     return column;
 }
+
 
 export async function updateColumn(id: string, data: { name?: string; type?: string; constraints?: string[]; comment?: string }) {
     const column = await prisma.column.update({
@@ -332,6 +353,8 @@ export async function registerTablesToProject(
                     positionY: 0,
                 },
             });
+        } else {
+            return { success: false, message: 'すでに登録済みのテーブルです。', post:null };
         }
 
         const postTable = await prisma.table.findUnique({

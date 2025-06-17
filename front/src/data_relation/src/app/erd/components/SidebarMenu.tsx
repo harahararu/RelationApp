@@ -1,7 +1,7 @@
 import Button from "@/components/Button";
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from "react";
-import { addTableToProject, getAvailableTables } from "./actions";
+import { getAvailableTables } from "./actions";
 import { Table } from "@/types/types";
 import SidebarMenu from "@/components/SidebarMenu";
 import AddDbTable from "./AddDbTable";
@@ -53,7 +53,6 @@ const ERDSidebar:React.FC<ERDSidebarProps> = ({ projectId, setNodes }) => {
     //     };
 
     const addNewTadleNode = (newTable: Table) => {
-        router.refresh()
         setNodes((nds:Node[]) => [
             ...nds,
             {

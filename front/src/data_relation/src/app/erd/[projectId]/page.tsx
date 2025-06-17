@@ -38,7 +38,7 @@ export default async function ERDPage({ params }: { params: Promise<{ projectId:
 		}),
 		prisma.relation.findMany({
 			where: { projectId: id },
-			select: { id: true, sourceTableId: true, targetTableId: true, sourceColumn: true, targetColumn: true, type: true },
+			select: { id: true, sourceTable: true, targetTable: true, sourceColumn: true, targetColumn: true, type: true },
 		}),
 	]);
 
@@ -50,14 +50,19 @@ export default async function ERDPage({ params }: { params: Promise<{ projectId:
 	const initialNodes = project.tables.map((pt, index) => ({
 		id: pt.table.id.toString(),
 		type: 'table' as const,
-		position: { x: 100 + index * 300, y: 100 },
+		position: { 
+			x: pt.positionX ?? 100 + index * 300,
+			y: pt.positionY ?? 100
+		},
 		data: { name: pt.table.name, columns: pt.table.columns },
 	}));
 
 	const initialEdges = relationships.map((rel) => ({
 		id: rel.id.toString(),
-		source: rel.sourceTableId.toString(),
-		target: rel.targetTableId.toString(),
+		source: rel.sourceTable.id.toString(),
+		target: rel.targetTable.id.toString(),
+		sourceHandle: `${rel.sourceTable.name}.${rel.sourceColumn.name}`,
+		targetHandle: `${rel.targetTable.name}.${rel.targetColumn.name}`,
 		type: 'relationship',
 		data: { cardinality: rel.type },
 	}));
