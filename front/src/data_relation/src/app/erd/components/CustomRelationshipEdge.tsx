@@ -2,7 +2,12 @@
 import { EdgeProps, BaseEdge, getBezierPath } from '@xyflow/react';
 
 interface RelationshipEdgeData {
-	cardinality: string;
+	id: string;
+	source: string;
+	target: string;
+	data: {
+		cardinality: string;
+	};
 }
 
 const CustomRelationshipEdge: React.FC<EdgeProps<RelationshipEdgeData>> = ({

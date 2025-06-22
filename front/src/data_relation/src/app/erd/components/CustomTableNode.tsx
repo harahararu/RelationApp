@@ -1,20 +1,23 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import { NodeProps, Handle, Position } from '@xyflow/react';
+import { Dispatch, SetStateAction, useCallback, useState } from 'react';
+import { NodeProps, Handle, Position, Node, Edge } from '@xyflow/react';
 import { updateTable, createColumn, updateColumn, deleteColumn, } from './actions';
+import { CustomNode } from '@/types/reactFlow';
+import { Column } from '@/types/types';
 
-interface Column {
-	id: string;
+type NodeData = {
+	setNodes: Dispatch<SetStateAction<Node<CustomNode>[]>>;
+	setEdges: Dispatch<SetStateAction<Edge[]>>;
+	nodes: Node<CustomNode>[];
+	projectId: number;
 	name: string;
-	type: string;
-	constraints: string[];
-	comment?: string;
-	pk?: boolean;
-	fk?: string;
+    columns: Column[];
 }
 
-const CustomTableNode: React.FC<NodeProps> = ({ id, data }) => {
+type CustomNodeProps = NodeProps<Node<NodeData>>;
+
+const CustomTableNode: React.FC<CustomNodeProps> = ({ id, data }) => {
 	const [isEditingTable, setIsEditingTable] = useState(false);
 	const [tableName, setTableName] = useState(data.name);
 	const [isAddingColumn, setIsAddingColumn] = useState(false);
@@ -37,14 +40,14 @@ const CustomTableNode: React.FC<NodeProps> = ({ id, data }) => {
 		try {
 			await updateTable(id, { name: newTableName });
 
-			setNodes((nds: any) =>
-				nds.map((node: any) =>
+			setNodes((nds: Node<CustomNode>[]) =>
+				nds.map((node) =>
 					node.id === id ? { ...node, data: { ...node.data, name: newTableName } } : node
 				)
 			);
 
-			setEdges((eds: any) =>
-				eds.map((edge: any) => {
+			setEdges((eds: Edge[]) =>
+				eds.map((edge) => {
 					let newSourceHandle = edge.sourceHandle;
 					let newTargetHandle = edge.targetHandle;
 
@@ -63,12 +66,12 @@ const CustomTableNode: React.FC<NodeProps> = ({ id, data }) => {
 				})
 			);
 
-			setNodes((nds: any) =>
-				nds.map((node: any) => ({
+			setNodes((nds: Node<CustomNode>[]) =>
+				nds.map((node) => ({
 					...node,
 					data: {
 						...node.data,
-						columns: node.data.columns.map((col: any) =>
+						columns: node.data.columns.map((col: Column) =>
 							col.fk?.startsWith(`${oldTableName}.`)
 								? { ...col, fk: col.fk.replace(`${oldTableName}.`, `${newTableName}.`) }
 								: col
@@ -100,8 +103,8 @@ const CustomTableNode: React.FC<NodeProps> = ({ id, data }) => {
 				constraints: newColumn.constraints,
 			});
 
-			setNodes((nds: any) =>
-				nds.map((node: any) =>
+			setNodes((nds: Node<CustomNode>[]) =>
+				nds.map((node) =>
 					node.id === id
 						? {
 							...node,
@@ -137,24 +140,24 @@ const CustomTableNode: React.FC<NodeProps> = ({ id, data }) => {
 		const newColumnName = editingColumn.name;
 
 		try {
-			await updateColumn({
-				id: editingColumn.id,
-				data: {
+			await updateColumn(
+				editingColumn.id,
+				{
 					name: editingColumn.name,
 					type: editingColumn.type,
 					constraints: editingColumn.constraints,
 					comment: editingColumn.comment,
 				}
-			});
+			);
 
-			setNodes((nds: any) =>
-				nds.map((node: any) =>
+			setNodes((nds: Node<CustomNode>[]) =>
+				nds.map((node) =>
 					node.id === id
 						? {
 							...node,
 							data: {
 								...node.data,
-								columns: node.data.columns.map((col: any, i: number) =>
+								columns: node.data.columns.map((col: Column, i: number) =>
 									i === editingColumnIndex ? { ...editingColumn, pk: editingColumn.constraints.includes('PRIMARY_KEY') } : col
 								),
 							},
@@ -183,12 +186,12 @@ const CustomTableNode: React.FC<NodeProps> = ({ id, data }) => {
 				})
 			);
 
-			setNodes((nds: any) =>
-				nds.map((node: any) => ({
+			setNodes((nds: Node<CustomNode>[]) =>
+				nds.map((node) => ({
 					...node,
 					data: {
 						...node.data,
-						columns: node.data.columns.map((col: any) =>
+						columns: node.data.columns.map((col: Column) =>
 							col.fk === `${data.name}.${oldColumnName}`
 								? { ...col, fk: `${data.name}.${newColumnName}` }
 								: col
@@ -217,8 +220,8 @@ const CustomTableNode: React.FC<NodeProps> = ({ id, data }) => {
 		try {
 			await deleteColumn(column.id);
 
-			setNodes((nds: any) =>
-				nds.map((node: any) =>
+			setNodes((nds: Node<CustomNode>[]) =>
+				nds.map((node) =>
 					node.id === id
 						? {
 							...node,
@@ -231,20 +234,20 @@ const CustomTableNode: React.FC<NodeProps> = ({ id, data }) => {
 				)
 			);
 
-			setEdges((eds: any) =>
+			setEdges((eds: Edge[]) =>
 				eds.filter(
-					(edge: any) =>
+					(edge) =>
 						edge.sourceHandle !== `${data.name}.${column.name}` &&
 						edge.targetHandle !== `${data.name}.${column.name}`
 				)
 			);
 
-			setNodes((nds: any) =>
-				nds.map((node: any) => ({
+			setNodes((nds: Node<CustomNode>[]) =>
+				nds.map((node) => ({
 					...node,
 					data: {
 						...node.data,
-						columns: node.data.columns.map((col: any) =>
+						columns: node.data.columns.map((col: Column) =>
 							col.fk === `${data.name}.${column.name}` ? { ...col, fk: undefined } : col
 						),
 					},

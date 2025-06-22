@@ -166,7 +166,7 @@ export async function createColumn(data: { tableId: string; name: string; type: 
 }
 
 
-export async function updateColumn(id: string, data: { name?: string; type?: string; constraints?: string[]; comment?: string }) {
+export async function updateColumn(id: string, data: { name: string; type: string; constraints: string[]; comment?: string }) {
     const column = await prisma.column.update({
         where: { id: parseInt(id) },
         data,

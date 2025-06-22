@@ -4,7 +4,6 @@ import { Database } from '@/types/types'
 import { Client } from 'pg'; // PostgreSQL用
 import mysql from 'mysql2/promise'; // MySQL用
 import oracledb from 'oracledb'; // Oracle用
-// SQLiteやOracle用のドライバも必要に応じてインポート
 
 export async function testDatabaseConnection(database: Database) {
   try {

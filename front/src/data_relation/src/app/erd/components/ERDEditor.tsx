@@ -89,6 +89,9 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
             const sourceColumnName = params.sourceHandle.split('.')[1];
             const targetColumnName = params.targetHandle.split('.')[1];
 
+            console.log(sourceNode)
+            console.log(targetNode)
+            console.log(params)
             const sourceColumn = sourceNode.data.columns.find((c: Column) => c.name === sourceColumnName);
             const targetColumn = targetNode.data.columns.find((c: Column) => c.name === targetColumnName);
 
