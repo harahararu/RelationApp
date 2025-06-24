@@ -6,7 +6,7 @@ import { Table } from './SelectorClient';
 
 interface SearchFormProps {
     tables: Table[];
-    onSearch: (data: any[] | null, error: string | null) => void;
+    onSearch: (data: any[] | null, error: string | null, tableId: number | null) => void;
 }
 
 export default function SearchForm({ tables, onSearch }: SearchFormProps) {
@@ -34,7 +34,7 @@ export default function SearchForm({ tables, onSearch }: SearchFormProps) {
                 setError(error);
             }
 
-            onSearch(data, error);
+            onSearch(data, error, Number(tableId));
         });
     };
 

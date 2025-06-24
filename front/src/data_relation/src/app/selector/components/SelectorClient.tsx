@@ -28,22 +28,26 @@ export default function SelectorPageClient({
   relations: Relation[];
 }) {
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [tableId, setTableId] = useState<number | null>(null);
 
   return (
     <div className="container mx-auto p-4">
       <SearchForm
         tables={initialData}
-        onSearch={(data, error) => {
+        onSearch={(data, error, tableId) => {
           if (error) {
             console.error(error);
             setSearchResults([]);
+            setTableId(null);
           } else {
             setSearchResults(data || []);
+            console.log(tableId)
+            setTableId(tableId);
           }
         }}
       />
 
-      <RelatedDataTabs relations={relations} initialData={searchResults} />
+      <RelatedDataTabs relations={relations} initialData={searchResults} tableId={tableId}/>
     </div>
   );
 }
