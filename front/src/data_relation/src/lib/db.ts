@@ -74,7 +74,8 @@ export async function queryDatabase(
             };
         case 'oracle':
             const oracleConnection = await connection.getConnection();
-            try {
+            try {  
+                
                 const oracleResult = await oracleConnection.execute(query, values, { outFormat: oracledb.OUT_FORMAT_OBJECT });
                 return {
                     rows: oracleResult.rows || [],

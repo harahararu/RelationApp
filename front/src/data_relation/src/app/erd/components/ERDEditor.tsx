@@ -18,12 +18,13 @@ import CustomRelationshipEdge from './CustomRelationshipEdge';
 import { createEdge, updateEdge, deleteEdge, removeTableFromProject, updateNodePosition } from './actions';
 import { Table, Column } from '@/types/types';
 import SidebarMenu from './SidebarMenu';
+import { CustomNode } from '@/types/reactFlow';
 
 const nodeTypes = { table: CustomTableNode };
 const edgeTypes = { relationship: CustomRelationshipEdge };
 
 interface ERDEditorProps {
-    initialNodes: Node[];
+    initialNodes: Node<CustomNode>[];
     initialEdges: Edge[];
     projectId: number;
     availableTables: { id: number; name: string; columns: { name: string; type: string, constraints: string[], comment: string | null }[] }[];
@@ -49,7 +50,7 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
     }));
 
     const handleNodesChange = useCallback(
-        async (changes: NodeChange[]) => {
+        async (changes: NodeChange<Node<CustomNode>>[]) => {
         onNodesChange(changes); // 既存のノード変更処理を適用
 
         for (const change of changes) {
@@ -104,9 +105,9 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
                 const newEdge = await createEdge({
                     projectId,
                     sourceTableId: params.source!,
-                    sourceColumnId: sourceColumn.id,
+                    sourceColumnId: sourceColumn.id.toString(),
                     targetTableId: params.target!,
-                    targetColumnId: targetColumn.id,
+                    targetColumnId: targetColumn.id.toString(),
                     type: '1:N',
                 });
 

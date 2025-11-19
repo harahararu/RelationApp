@@ -63,7 +63,7 @@ export default async function ERDPage({ params }: { params: Promise<{ projectId:
 		target: rel.targetTable.id.toString(),
 		sourceHandle: `${rel.sourceTable.name}.${rel.sourceColumn.name}`,
 		targetHandle: `${rel.targetTable.name}.${rel.targetColumn.name}`,
-		type: 'relationship',
+		type: 'relationship' as const,
 		data: { cardinality: rel.type },
 	}));
 

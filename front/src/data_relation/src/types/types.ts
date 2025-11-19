@@ -13,7 +13,8 @@ export interface Column {
     name: string;
     type: string;
     constraints: string[];
-    comment?: string;
+    comment?: string | null;
+    fk?: string;
 }
 
 export interface Table {

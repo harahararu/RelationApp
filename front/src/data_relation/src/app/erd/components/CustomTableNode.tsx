@@ -21,7 +21,7 @@ const CustomTableNode: React.FC<CustomNodeProps> = ({ id, data }) => {
 	const [isEditingTable, setIsEditingTable] = useState(false);
 	const [tableName, setTableName] = useState(data.name);
 	const [isAddingColumn, setIsAddingColumn] = useState(false);
-	const [newColumn, setNewColumn] = useState<Column>({ name: '', type: 'string', constraints: [], id: '' });
+	const [newColumn, setNewColumn] = useState<Column>({ name: '', type: 'string', constraints: [], id: NaN });
 	const [editingColumnIndex, setEditingColumnIndex] = useState<number | null>(null);
 	const [editingColumn, setEditingColumn] = useState<Column | null>(null);
 	const [error, setError] = useState<string | null>(null);
@@ -110,13 +110,13 @@ const CustomTableNode: React.FC<CustomNodeProps> = ({ id, data }) => {
 							...node,
 							data: {
 								...node.data,
-								columns: [...node.data.columns, { ...newColumn, id: createdColumn.id.toString(), pk: newColumn.constraints.includes('PRIMARY_KEY') }],
+								columns: [...node.data.columns, { ...newColumn, id: createdColumn.id, pk: newColumn.constraints.includes('PRIMARY_KEY') }],
 							},
 						}
 						: node
 				)
 			);
-			setNewColumn({ name: '', type: 'string', constraints: [], id: '' });
+			setNewColumn({ name: '', type: 'string', constraints: [], id: NaN });
 			setIsAddingColumn(false);
 			setError(null);
 		} catch (e) {
@@ -141,12 +141,12 @@ const CustomTableNode: React.FC<CustomNodeProps> = ({ id, data }) => {
 
 		try {
 			await updateColumn(
-				editingColumn.id,
+				String(editingColumn.id),
 				{
 					name: editingColumn.name,
 					type: editingColumn.type,
 					constraints: editingColumn.constraints,
-					comment: editingColumn.comment,
+					comment: editingColumn.comment??undefined,
 				}
 			);
 
@@ -218,7 +218,7 @@ const CustomTableNode: React.FC<CustomNodeProps> = ({ id, data }) => {
 		const column = columns[index];
 
 		try {
-			await deleteColumn(column.id);
+			await deleteColumn(String(column.id));
 
 			setNodes((nds: Node<CustomNode>[]) =>
 				nds.map((node) =>

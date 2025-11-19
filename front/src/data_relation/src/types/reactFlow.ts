@@ -5,3 +5,11 @@ export type CustomNode = {
 	columns: Column[]
 }
 
+export type CustomEdge = {
+	id: string;
+	source: string;
+	target: string;
+	data: {
+		cardinality: string;
+	};
+}
