@@ -1,4 +1,3 @@
-// components/DataTable.tsx
 import React from 'react';
 import {
   useReactTable,
@@ -13,11 +12,12 @@ import {
   SortingState,
   ColumnFiltersState,
   Header,
+  Column,
   FilterFn,
 } from '@tanstack/react-table';
 import { ChevronsUpDown } from 'lucide-react';
 
-// カスタムフィルタ関数
+// カスタムフィルタ関数（型安全）
 export const dateRangeFilterFn: FilterFn<unknown> = (row, columnId, filterValue) => {
   const [start, end] = filterValue as [string | undefined, string | undefined] ?? [undefined, undefined];
   const cellValue = row.getValue(columnId) as Date;
@@ -38,7 +38,7 @@ export const numberRangeFilterFn: FilterFn<unknown> = (row, columnId, filterValu
 
 type DataTableProps<TData> = {
   data: TData[];
-  columns: ColumnDef<TData, unknown>[];  // unknown で型エラー回避
+  columns: ColumnDef<TData, unknown>[];
   pageSize?: number;
 };
 
@@ -60,8 +60,8 @@ export function DataTable<TData>({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),  // Faceted 必須
-    getFacetedUniqueValues: getFacetedUniqueValues(),  // Faceted 必須
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
     initialState: { pagination: { pageSize } },
   });
 
@@ -102,7 +102,6 @@ export function DataTable<TData>({
         </table>
       </div>
 
-      {/* ページネーション */}
       <div className="mt-6 flex items-center justify-between text-sm">
         <div className="text-gray-600">
           全 {table.getFilteredRowModel().rows.length} 件中 {table.getRowModel().rows.length} 件表示
@@ -131,16 +130,18 @@ export function DataTable<TData>({
   );
 }
 
-// ヘッダー（Faceted Filter 復活 + 範囲フィルタ対応）
+// ヘッダー（キャストで型エラー解決 + Faceted Filter 完備）
 function DataTableHeader<TData>({ header }: { header: Header<TData, unknown> }) {
   const column = header.column;
   const filterValue = column.getFilterValue();
-  const facetedValues = column.getFacetedUniqueValues();  // Faceted 値取得
   const filterVariant = column.columnDef.meta?.filterVariant as 'text' | 'range' | 'date' | undefined;
+
+  // Faceted Filter 用キャスト（エラー解決）
+  const facetedColumn = column as Column<TData, unknown>;
+  const facetedValues = facetedColumn.getFacetedUniqueValues();
 
   return (
     <div className="flex flex-col gap-1.5">
-      {/* ヘッダー名 + ソート */}
       <button
         className="flex items-center gap-1 text-xs font-semibold text-gray-700 hover:text-gray-900"
         onClick={column.getToggleSortingHandler()}
@@ -149,11 +150,9 @@ function DataTableHeader<TData>({ header }: { header: Header<TData, unknown> }) 
         <ChevronsUpDown className="w-3.5 h-3.5" />
       </button>
 
-      {/* フィルタエリア */}
       {column.getCanFilter() && (
         <div className="text-xs">
           {filterVariant === 'range' ? (
-            // 数値範囲（age用）
             <div className="flex items-center gap-1">
               <input
                 type="number"
@@ -182,7 +181,6 @@ function DataTableHeader<TData>({ header }: { header: Header<TData, unknown> }) 
               />
             </div>
           ) : filterVariant === 'date' ? (
-            // 日付範囲（registeredAt用）
             <div className="flex items-center gap-1">
               <input
                 type="date"
@@ -209,7 +207,6 @@ function DataTableHeader<TData>({ header }: { header: Header<TData, unknown> }) 
               />
             </div>
           ) : facetedValues && facetedValues.size > 0 && facetedValues.size <= 20 ? (
-            // Faceted Filter（role/status用：ユニーク値ボタン）
             <div className="flex flex-wrap gap-1 mt-1">
               {Array.from(facetedValues.entries())
                 .sort(([a], [b]) => String(a).localeCompare(String(b)))
@@ -234,7 +231,6 @@ function DataTableHeader<TData>({ header }: { header: Header<TData, unknown> }) 
               {facetedValues.size > 8 && <span className="text-gray-500 text-xs">…</span>}
             </div>
           ) : (
-            // テキスト検索（デフォルト）
             <input
               type="text"
               value={(filterValue as string) ?? ''}
