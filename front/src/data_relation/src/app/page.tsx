@@ -1,7 +1,7 @@
 'use client';
 
 import { DataTable, dateRangeFilterFn, numberRangeFilterFn } from '@/components/Table';
-import { ColumnDef, createColumnHelper } from '@tanstack/react-table';
+import { ColumnDef, createColumnHelper, type FilterFnOption } from '@tanstack/react-table';
 import Link from 'next/link';
 
 
@@ -46,7 +46,7 @@ export default function Home() {
     columnHelper.accessor('email', { header: 'メール' }),
     columnHelper.accessor('age', {
       header: '年齢',
-      filterFn: numberRangeFilterFn,
+      filterFn: numberRangeFilterFn as FilterFnOption<User>,
       meta: { filterVariant: 'range' },
     }),
     // ここを修正！ accessorFn で role.name を返す
@@ -74,7 +74,7 @@ export default function Home() {
     columnHelper.accessor('registeredAt', {
       header: '登録日',
       cell: info => (info.getValue() as Date).toLocaleDateString('ja-JP'),
-      filterFn: dateRangeFilterFn,
+      filterFn: dateRangeFilterFn as FilterFnOption<User>,
       meta: { filterVariant: 'date' },
     }),
   ] as ColumnDef<User, unknown>[];
