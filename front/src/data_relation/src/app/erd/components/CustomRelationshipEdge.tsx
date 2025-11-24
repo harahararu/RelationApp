@@ -1,16 +1,13 @@
 'use client';
-import { EdgeProps, BaseEdge, getBezierPath } from '@xyflow/react';
+import { EdgeProps, BaseEdge, getBezierPath, type Edge } from '@xyflow/react';
 
-interface RelationshipEdgeData {
-	id: string;
-	source: string;
-	target: string;
-	data: {
-		cardinality: string;
-	};
+type RelationshipEdgeData = {
+	cardinality: string;
 }
 
-const CustomRelationshipEdge: React.FC<EdgeProps<RelationshipEdgeData>> = ({
+type CustomEdgeProps = EdgeProps<Edge<RelationshipEdgeData>>;
+
+const CustomRelationshipEdge: React.FC<CustomEdgeProps> = ({
 	id,
 	sourceX,
 	sourceY,

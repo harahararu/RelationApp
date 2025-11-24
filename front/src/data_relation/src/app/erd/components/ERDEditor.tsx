@@ -79,8 +79,8 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
                 setError('無効な接続です。');
                 return;
             }
-            const sourceNode = nodes.find((n: Node) => n.id === params.source);
-            const targetNode = nodes.find((n: Node) => n.id === params.target);
+            const sourceNode = nodes.find((n: Node) => n.id === params.source) as Node<{ name: string; columns: Column[] }>;
+            const targetNode = nodes.find((n: Node) => n.id === params.target) as Node<{ name: string; columns: Column[] }>;
             if (!sourceNode || !targetNode) {
                 setError('ノードが見つかりません。');
                 return;
@@ -104,9 +104,9 @@ const ERDEditor: React.FC<ERDEditorProps> = ({ initialNodes, initialEdges, proje
                 const newEdge = await createEdge({
                     projectId,
                     sourceTableId: params.source!,
-                    sourceColumnId: sourceColumn.id,
+                    sourceColumnId: sourceColumn.id.toString(),
                     targetTableId: params.target!,
-                    targetColumnId: targetColumn.id,
+                    targetColumnId: targetColumn.id.toString(),
                     type: '1:N',
                 });
 
