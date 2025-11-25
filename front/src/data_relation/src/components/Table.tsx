@@ -134,7 +134,7 @@ export function DataTable<TData>({
 function DataTableHeader<TData>({ header }: { header: Header<TData, unknown> }) {
   const column = header.column;
   const filterValue = column.getFilterValue();
-  const filterVariant = column.columnDef.meta?.filterVariant as 'text' | 'range' | 'date' | undefined;
+  const filterVariant = column.columnDef.meta?.filterVariant as 'text' | 'range' | 'date' | 'faceted' | undefined;
 
   // Faceted Filter 用キャスト（エラー解決）
   const facetedColumn = column as Column<TData, unknown>;
@@ -206,25 +206,25 @@ function DataTableHeader<TData>({ header }: { header: Header<TData, unknown> }) 
                 className="px-2 py-1 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
               />
             </div>
-          ) : facetedValues && facetedValues.size > 0 && facetedValues.size <= 20 ? (
+          ) : facetedValues && filterVariant ==='faceted' ? (
             <div className="flex flex-wrap gap-1 mt-1">
               {Array.from(facetedValues.entries())
                 .sort(([a], [b]) => String(a).localeCompare(String(b)))
                 .slice(0, 8)
                 .map(([value, count]) => {
-                  const strValue = String(value);
-                  const isActive = (filterValue as string) === strValue;
+                  const strValue = String(value === null ? '(空)' : value === undefined ? '(未定義)' : value);
+                  const isActive = column.getFilterValue() === value;
                   return (
                     <button
                       key={strValue}
-                      onClick={() => column.setFilterValue(isActive ? undefined : strValue)}
+                      onClick={() => column.setFilterValue(isActive ? undefined : value)}
                       className={`px-2 py-0.5 rounded text-xs font-medium transition ${
                         isActive
                           ? 'bg-blue-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
-                      {strValue || '(空)'} ({count})
+                      {strValue} ({count})
                     </button>
                   );
                 })}

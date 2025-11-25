@@ -70,6 +70,7 @@ export default function Home() {
       },
       // ソートも name で
       sortingFn: (a, b) => a.original.role.level > b.original.role.level ? 1 : -1,
+      meta: { filterVariant: 'faceted' }
     }),
     columnHelper.accessor('registeredAt', {
       header: '登録日',
